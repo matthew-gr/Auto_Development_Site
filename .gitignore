@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.vscode/
+.idea/
+
+# Python (local static server)
+__pycache__/
+*.pyc
+
+# Intermediate frame extraction (PNGs are regenerated from Assets/)
+png/
+*.tmp

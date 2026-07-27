@@ -13,3 +13,8 @@ __pycache__/
 # Intermediate frame extraction (PNGs are regenerated from Assets/)
 png/
 *.tmp
+
+# Claude Code local session settings (machine-specific permission grants).
+# The skill under .claude/skills/ IS committed; these settings are not.
+.claude/settings.json
+.claude/settings.local.json

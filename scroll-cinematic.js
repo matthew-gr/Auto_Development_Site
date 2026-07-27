@@ -44,11 +44,19 @@ function initScrub(cfg) {
     if (idx !== current) { current = idx; draw(idx); }
     for (const el of lines) {
       const a = parseFloat(el.dataset.in), b = parseFloat(el.dataset.out);
-      const mid = (a + b) / 2, half = (b - a) / 2;
-      let o = 1 - Math.abs(p - mid) / half;
+      // Trapezoid: fade in fast, HOLD at full opacity, fade out fast.
+      // (The old triangle peaked only at the midpoint, so copy was faint
+      //  almost the whole window and hard to read.)
+      const span = Math.max(b - a, 0.0001);
+      const fade = Math.min(span * 0.16, 0.05);   // short in/out ramps
+      let o;
+      if (p <= a || p >= b)        o = 0;
+      else if (p < a + fade)       o = (p - a) / fade;   // quick fade in
+      else if (p > b - fade)       o = (b - p) / fade;   // quick fade out
+      else                         o = 1;                // hold, legible
       o = Math.max(0, Math.min(1, o));
       el.style.opacity = o.toFixed(3);
-      el.style.transform = `translateY(${(1 - o) * 30}px)`;
+      el.style.transform = `translateY(${(1 - o) * 16}px)`;
     }
   }
   window.addEventListener("resize", resize);

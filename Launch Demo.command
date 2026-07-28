@@ -25,4 +25,4 @@ PY=python3; command -v python3 >/dev/null 2>&1 || PY=python
   elif command -v start    >/dev/null 2>&1; then start "$URL"
   fi ) &
 
-$PY -m http.server $PORT
+$PY serve.py $PORT

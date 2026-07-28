@@ -13,4 +13,4 @@ echo   Keep this window open while recording. Ctrl+C to stop.
 echo.
 
 start "" http://localhost:%PORT%
-python -m http.server %PORT%
+python serve.py %PORT%

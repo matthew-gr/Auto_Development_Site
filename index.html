@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
 
@@ -77,27 +77,32 @@
     </div>
   </section>
 
-  <!-- ============ The Solution (summary — fuzzy parallax image behind the text) ============ -->
-  <section class="panel solution-summary" id="solution">
-    <div class="ss-bg"><div class="pb-layer"><img src="frames/spin/frame_0090.jpg" alt="" aria-hidden="true" /></div></div>
-    <div class="ss-scrim"></div>
-    <div class="wrap narrow center">
-      <p class="eyebrow reveal">// THE SOLUTION</p>
-      <h2 class="h2 reveal">Every rooftop. Every vendor.<br/><span class="accent">One united system.</span></h2>
-      <p class="lede reveal">We build custom group-level solutions your team and your customers will love:
-        from the layer that connects the software you already run to the digital experiences your buyers
-        see first.</p>
-      <p class="trust reveal">Your data is always yours — we connect it — you own it.</p>
-    </div>
-  </section>
-
-  <!-- ============ Our Solutions — code-reflection background + scrolling-wheel copy ============ -->
+  <!-- ============ The Solution → Our Solutions — one frosted-glass reveal ============
+       Intro copy sits as "frosted glass" over the blurred code car. Scroll clears the
+       frost and slides the copy away, revealing the sharp car; then the scrub + wheel play.
+       All one pinned sequence so the car never jumps. -->
   <section class="solutions" id="solutions">
     <div class="sticky sol-sticky">
-      <img class="frame-poster" src="frames/code/frame_0000.jpg" alt="" aria-hidden="true" />
-      <canvas class="frame-canvas"></canvas>
+      <div class="sol-car">
+        <img class="frame-poster" src="frames/code/frame_0000.jpg" alt="" aria-hidden="true" />
+        <canvas class="frame-canvas"></canvas>
+      </div>
+      <div class="sol-frost"></div>
       <div class="sol-scrim"></div>
 
+      <!-- INTRO: the frosted-glass copy -->
+      <div class="sol-intro">
+        <div class="wrap narrow center">
+          <p class="eyebrow">// THE SOLUTION</p>
+          <h2 class="h2">Every rooftop. Every vendor.<br/><span class="accent">One united system.</span></h2>
+          <p class="lede">We build custom group-level solutions your team and your customers will love:
+            from the layer that connects the software you already run to the digital experiences your buyers
+            see first.</p>
+          <p class="trust">Your data is always yours — we connect it — you own it.</p>
+        </div>
+      </div>
+
+      <!-- REVEALED: banner + solution wheel over the now-sharp car -->
       <p class="sol-eyebrow">// WE CAN HELP</p>
 
       <div class="sol-wheel">
@@ -192,17 +197,19 @@
     </div>
   </section>
 
-  <!-- ============ CTA ============ -->
-  <section class="panel cta">
-    <div class="wrap narrow center">
-      <p class="eyebrow reveal">// NEXT</p>
-      <p class="cta-statement reveal">The groups that connect their data first will run the next decade.
-        <span class="accent">Start now.</span></p>
-      <div class="cta-row reveal">
-        <!-- PLACEHOLDER scheduling link — swap for the real booking URL -->
-        <a class="btn btn-primary" href="https://calendly.com/gra-developers/intro" target="_blank" rel="noopener">Book a call</a>
-        <!-- PLACEHOLDER email capture — swap for the real mailing-list form -->
-        <a class="btn btn-ghost" href="mailto:hello@gradevelopers.com?subject=Join%20the%20VELOCE%20mailing%20list">Join our mailing list</a>
+  <!-- ============ CTA — grows to fill the screen, covering the portfolio ============ -->
+  <section class="cta" id="cta">
+    <div class="cta-sticky">
+      <div class="wrap narrow center cta-inner">
+        <p class="eyebrow">// NEXT</p>
+        <p class="cta-statement">The groups that connect their data first will run the next decade.
+          <span class="accent">Start now.</span></p>
+        <div class="cta-row">
+          <!-- PLACEHOLDER scheduling link — swap for the real booking URL -->
+          <a class="btn btn-primary" href="https://calendly.com/gra-developers/intro" target="_blank" rel="noopener">Book a call</a>
+          <!-- PLACEHOLDER email capture — swap for the real mailing-list form -->
+          <a class="btn btn-ghost" href="mailto:hello@gradevelopers.com?subject=Join%20the%20VELOCE%20mailing%20list">Join our mailing list</a>
+        </div>
       </div>
     </div>
   </section>
@@ -215,14 +222,14 @@
   <!-- ============ Scrub config ============ -->
   <script>
     window.SCRUB_SECTIONS = [
-      { section:"#hero", frameCount:180, bg:"#0a0a12",
+      { section:"#hero", frameCount:180, bg:"#0a0a12", frameEnd:0.74,
         framePath:(i)=>`frames/spin/frame_${String(i).padStart(4,"0")}.jpg` },
-      { section:"#solutions", frameCount:135, bg:"#0a0a12",
+      { section:"#solutions", frameCount:135, bg:"#0a0a12", frameStart:0.38, frameEnd:0.76,
         framePath:(i)=>`frames/code/frame_${String(i).padStart(4,"0")}.jpg` }
     ];
   </script>
 
   <script src="lenis.min.js?v=1"></script>
-  <script src="scroll-cinematic.js?v=6"></script>
+  <script src="scroll-cinematic.js?v=10"></script>
 </body>
 </html>

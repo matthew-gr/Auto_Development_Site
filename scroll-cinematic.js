@@ -44,7 +44,11 @@ function initScrub(cfg) {
     if (rect.bottom < -window.innerHeight || rect.top > window.innerHeight) return;
     const scrollable = rect.height - window.innerHeight;
     const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-    const idx = Math.min(cfg.frameCount - 1, Math.floor(p * (cfg.frameCount - 1)));
+    // frameStart/frameEnd remap: hold on frame 0 until frameStart (frosted intro),
+    // and finish the scrub by frameEnd so it's done before the next section covers it.
+    const fs = cfg.frameStart || 0, fe = cfg.frameEnd || 1;
+    const pf = Math.min(Math.max((p - fs) / (fe - fs), 0), 1);
+    const idx = Math.min(cfg.frameCount - 1, Math.floor(pf * (cfg.frameCount - 1)));
     if (idx !== current) { current = idx; draw(idx); }
 
     // Overlay fade: longer, smoother transitions. First line is full from the
@@ -88,7 +92,15 @@ function initWheel(sel, itemSel, opts) {
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
     const scrollable = rect.height - window.innerHeight;
     const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-    const active = p * (N - 1);
+    // pStart/pEnd: hide the wheel during the intro, then run it between pStart and
+    // pEnd so it finishes before the next section covers this one.
+    let pw = p;
+    if (opts.pStart != null) {
+      if (p < opts.pStart) { items.forEach(el => { el.style.opacity = "0"; el.style.pointerEvents = "none"; }); return; }
+      const pe = opts.pEnd != null ? opts.pEnd : 1;
+      pw = Math.min((p - opts.pStart) / (pe - opts.pStart), 1);
+    }
+    const active = pw * (N - 1);
     items.forEach((el, i) => {
       const d = i - active;                  // 0 = in the reading position
       const o = Math.max(0, 1 - Math.abs(d) * falloff);
@@ -101,18 +113,57 @@ function initWheel(sel, itemSel, opts) {
   return { update };
 }
 
-/* ---- Parallax: drift a blurred layer slower than the page for a 3D feel ---- */
-function initParallax(sel, layerSel, amount) {
+/* ---- Frosted-glass reveal: clear the blur + slide the intro copy away, then
+   hand off to the sharp car + wheel. One continuous pinned sequence. ---- */
+function initReveal(sel) {
   const section = document.querySelector(sel);
   if (!section) return null;
-  const layer = section.querySelector(layerSel);
-  if (!layer) return null;
+  const car    = section.querySelector(".sol-car");
+  const intro  = section.querySelector(".sol-intro");
+  const frost  = section.querySelector(".sol-frost");
+  const banner = section.querySelector(".sol-eyebrow");
+  const scrim  = section.querySelector(".sol-scrim");
+  // First ~0.20 of the section = the black problem sliding up off the stationary
+  // (frosted) car. Then the frost clears; then the scrub/wheel take over.
+  const CLEAR_START = 0.22, CLEAR_END = 0.38, MAX_BLUR = 22;
+  const clamp01 = (x) => Math.min(Math.max(x, 0), 1);
   function update() {
     const rect = section.getBoundingClientRect();
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-    // -0.5 (entering from below) → +0.5 (leaving at top)
-    const prog = (rect.top + rect.height / 2 - window.innerHeight / 2) / window.innerHeight;
-    layer.style.transform = `translate3d(0, ${(prog * amount).toFixed(1)}px, 0)`;
+    const scrollable = rect.height - window.innerHeight;
+    const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
+    const clear = clamp01((p - CLEAR_START) / (CLEAR_END - CLEAR_START));  // 0 intro → 1 revealed
+    if (car) car.style.filter = `blur(${(MAX_BLUR * (1 - clear)).toFixed(1)}px)`;
+    if (intro) {
+      intro.style.opacity = (1 - clear).toFixed(3);
+      intro.style.transform = `translateY(${(-clear * 6).toFixed(2)}vh)`;   // glass slides up/away
+      intro.style.pointerEvents = clear > 0.5 ? "none" : "auto";
+    }
+    if (frost)  frost.style.opacity  = (1 - clear).toFixed(3);
+    if (banner) banner.style.opacity = clear.toFixed(3);
+    if (scrim)  scrim.style.opacity  = clear.toFixed(3);
+  }
+  return { update };
+}
+
+/* ---- Grow: scale a section's content up as you scroll (CTA finale) ---- */
+function initGrow(sel, innerSel, opts) {
+  const section = document.querySelector(sel);
+  if (!section) return null;
+  const inner = section.querySelector(innerSel);
+  if (!inner) return null;
+  opts = opts || {};
+  const from = opts.from != null ? opts.from : 0.55;
+  const to   = opts.to   != null ? opts.to   : 1.0;
+  const end  = opts.end  != null ? opts.end  : 0.82;   // reach full size by this progress, then hold
+  function update() {
+    const rect = section.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+    const scrollable = rect.height - window.innerHeight;
+    const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
+    const t = Math.min(p / end, 1);
+    inner.style.transform = `scale(${(from + (to - from) * t).toFixed(3)})`;
+    inner.style.opacity = (0.3 + 0.7 * t).toFixed(3);
   }
   return { update };
 }
@@ -121,9 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const scrubs = (window.SCRUB_SECTIONS || [])
     .filter(c => document.querySelector(c.section))
     .map(initScrub);
-  const solWheel = initWheel("#solutions", ".solution",   { travel: 12, falloff: 2.2, centerX: true  });
+  const solWheel = initWheel("#solutions", ".solution",   { travel: 12, falloff: 2.2, centerX: true,  pStart: 0.38, pEnd: 0.76 });
   const engWheel = initWheel("#portfolio", ".engagement", { travel: 14, falloff: 1.8, centerX: false });
-  const parallax = initParallax("#solution", ".pb-layer", 120);
+  const reveal   = initReveal("#solutions");
+  const ctaGrow  = initGrow("#cta", ".cta-inner");
 
   // Lenis is optional: if it fails to load, fall back to native scroll so the
   // animations NEVER all die because of one missing dependency.
@@ -139,9 +191,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       if (lenis) lenis.raf(t);
       scrubs.forEach(s => s.update());
+      if (reveal) reveal.update();
+      if (ctaGrow) ctaGrow.update();
       if (solWheel) solWheel.update();
       if (engWheel) engWheel.update();
-      if (parallax) parallax.update();
     } catch (e) { /* never let one bad frame kill the whole loop */ }
     requestAnimationFrame(raf);
   }

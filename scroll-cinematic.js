@@ -92,14 +92,12 @@ function initWheel(sel, itemSel, opts) {
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
     const scrollable = rect.height - window.innerHeight;
     const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-    // pStart/pEnd: hide the wheel during the intro, then run it between pStart and
-    // pEnd so it finishes before the next section covers this one.
-    let pw = p;
-    if (opts.pStart != null) {
-      if (p < opts.pStart) { items.forEach(el => { el.style.opacity = "0"; el.style.pointerEvents = "none"; }); return; }
-      const pe = opts.pEnd != null ? opts.pEnd : 1;
-      pw = Math.min((p - opts.pStart) / (pe - opts.pStart), 1);
-    }
+    // pStart/pEnd: hide the wheel before pStart, run it between pStart and pEnd,
+    // then hold the last item (so it stays readable and finishes before any cover).
+    const ps = opts.pStart != null ? opts.pStart : 0;
+    const pe = opts.pEnd != null ? opts.pEnd : 1;
+    if (p < ps) { items.forEach(el => { el.style.opacity = "0"; el.style.pointerEvents = "none"; }); return; }
+    const pw = Math.min((p - ps) / (pe - ps), 1);
     const active = pw * (N - 1);
     items.forEach((el, i) => {
       const d = i - active;                  // 0 = in the reading position
@@ -153,17 +151,17 @@ function initGrow(sel, innerSel, opts) {
   const inner = section.querySelector(innerSel);
   if (!inner) return null;
   opts = opts || {};
-  const from = opts.from != null ? opts.from : 0.55;
+  const from = opts.from != null ? opts.from : 0.75;
   const to   = opts.to   != null ? opts.to   : 1.0;
-  const end  = opts.end  != null ? opts.end  : 0.82;   // reach full size by this progress, then hold
   function update() {
     const rect = section.getBoundingClientRect();
     if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-    const scrollable = rect.height - window.innerHeight;
-    const p = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-    const t = Math.min(p / end, 1);
+    // Drive by ENTRY, not pinned progress: grow as the section rises into view and
+    // reach full size by the time it fills the screen (top ~15% down), then hold.
+    // No "scroll past the bottom to keep growing".
+    const t = Math.min(Math.max((window.innerHeight - rect.top) / (window.innerHeight * 0.85), 0), 1);
     inner.style.transform = `scale(${(from + (to - from) * t).toFixed(3)})`;
-    inner.style.opacity = (0.3 + 0.7 * t).toFixed(3);
+    inner.style.opacity = (0.5 + 0.5 * t).toFixed(3);
   }
   return { update };
 }
@@ -173,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .filter(c => document.querySelector(c.section))
     .map(initScrub);
   const solWheel = initWheel("#solutions", ".solution",   { travel: 12, falloff: 2.2, centerX: true,  pStart: 0.38, pEnd: 0.76 });
-  const engWheel = initWheel("#portfolio", ".engagement", { travel: 14, falloff: 1.8, centerX: false });
+  const engWheel = initWheel("#portfolio", ".engagement", { travel: 14, falloff: 1.8, centerX: false, pEnd: 0.82 });
   const reveal   = initReveal("#solutions");
   const ctaGrow  = initGrow("#cta", ".cta-inner");
 

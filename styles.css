@@ -286,8 +286,8 @@ body {
 .eng-pending { color: var(--faint); }
 .eng-body { color: var(--muted); line-height: 1.7; font-size: 1.02rem; max-width: 62ch; }
 
-/* ---------- CTA (grows to fill the screen, covering the portfolio) ---------- */
-.cta { position: relative; z-index: 5; height: 220vh; margin-top: -100vh; }
+/* ---------- CTA (grows in as it fills the screen; does NOT slide over the portfolio) ---------- */
+.cta { position: relative; z-index: 2; height: 140vh; }
 .cta-sticky {
   position: sticky; top: 0; height: 100vh;
   display: grid; place-items: center; overflow: hidden;
@@ -296,8 +296,8 @@ body {
 }
 .cta-inner {
   transform-origin: center center;
-  opacity: 0.3;                 /* JS scales + fades this up as you scroll */
-  transform: scale(0.55);
+  opacity: 0.5;                 /* JS scales + fades this up as it enters */
+  transform: scale(0.75);
   will-change: transform, opacity;
 }
 .cta-statement { font-size: clamp(1.6rem, 3.6vw, 2.7rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.22; max-width: 22ch; margin: 0 auto 40px; }
